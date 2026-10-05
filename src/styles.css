@@ -14,5 +14,14 @@ section {
   border-radius: 0.75rem;
   box-shadow: 0 0.25rem 1rem rgb(23 32 51 / 8%);
 }
+.sequence-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
 label { display: grid; gap: 0.5rem; font-weight: 600; }
 textarea { font: 1rem ui-monospace, monospace; padding: 0.75rem; }
+
+@media (max-width: 700px) {
+  .sequence-inputs { grid-template-columns: 1fr; }
+}

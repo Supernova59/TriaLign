@@ -1,16 +1,16 @@
 import { useMemo, useState } from 'react';
 import { globalAlignment } from './core/alignment/pairwise';
-import { parseFasta } from './data/fasta';
+import { normalizeSequenceInput } from './data/fasta';
 import { AlignmentText } from './viz/AlignmentText';
 import { SequenceInput } from './components/SequenceInput';
 
-const initialInput = '>sequence-1\nACGT\n>sequence-2\nAGT';
-
 export function App() {
-  const [input, setInput] = useState(initialInput);
-  const sequences = useMemo(() => parseFasta(input), [input]);
+  const [firstInput, setFirstInput] = useState('ACGT');
+  const [secondInput, setSecondInput] = useState('AGT');
+  const firstSequence = useMemo(() => normalizeSequenceInput(firstInput), [firstInput]);
+  const secondSequence = useMemo(() => normalizeSequenceInput(secondInput), [secondInput]);
   const alignment =
-    sequences.length >= 2 ? globalAlignment(sequences[0].value, sequences[1].value) : undefined;
+    firstSequence && secondSequence ? globalAlignment(firstSequence, secondSequence) : undefined;
 
   return (
     <main>
@@ -20,8 +20,11 @@ export function App() {
         <p>Un espace pédagogique pour comprendre les alignements 2D et 3D.</p>
       </header>
       <section>
-        <SequenceInput value={input} onChange={setInput} />
-        {alignment ? <AlignmentText alignment={alignment} /> : <p>Entrez au moins deux séquences FASTA.</p>}
+        <div className="sequence-inputs">
+          <SequenceInput label="Séquence 1" value={firstInput} onChange={setFirstInput} />
+          <SequenceInput label="Séquence 2" value={secondInput} onChange={setSecondInput} />
+        </div>
+        {alignment ? <AlignmentText alignment={alignment} /> : <p>Entrez deux séquences.</p>}
       </section>
     </main>
   );

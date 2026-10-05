@@ -19,3 +19,12 @@ export function parseFasta(input: string): Sequence[] {
   if (current) entries.push(current);
   return entries;
 }
+
+export function normalizeSequenceInput(input: string): string {
+  const trimmed = input.trim();
+  if (trimmed.startsWith('>')) {
+    return parseFasta(trimmed)[0]?.value ?? '';
+  }
+
+  return trimmed.replace(/\s+/g, '').toUpperCase();
+}
