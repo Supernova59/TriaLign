@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { globalAlignment } from '../../src/core/alignment/pairwise';
+import {
+  globalAlignment,
+  localAlignment,
+  semiGlobalAlignment,
+} from '../../src/core/alignment/pairwise';
 import { normalizeSequenceInput } from '../../src/data/fasta';
 
 describe('globalAlignment', () => {
@@ -10,6 +14,26 @@ describe('globalAlignment', () => {
     expect(result.first.replaceAll('-', '')).toBe('ACGT');
     expect(result.second.replaceAll('-', '')).toBe('AGT');
     expect(result.score).toBe(2);
+  });
+});
+
+describe('localAlignment', () => {
+  it('retient la meilleure région commune', () => {
+    const result = localAlignment('TTACGTAA', 'GGACGTTT');
+
+    expect(result.first).toBe('ACGT');
+    expect(result.second).toBe('ACGT');
+    expect(result.score).toBe(4);
+  });
+});
+
+describe('semiGlobalAlignment', () => {
+  it('ignore les gaps aux extrémités', () => {
+    const result = semiGlobalAlignment('TTACGT', 'ACGTAA');
+
+    expect(result.first.replaceAll('-', '')).toBe('TTACGT');
+    expect(result.second.replaceAll('-', '')).toBe('ACGTAA');
+    expect(result.score).toBe(4);
   });
 });
 

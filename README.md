@@ -14,13 +14,14 @@ Fonctionnel :
 
 - application React/TypeScript démarrable avec Vite ;
 - import et parsing basique de séquences FASTA ;
-- alignement global de deux séquences avec l'algorithme de Needleman-Wunsch ;
+- alignements global, local et semi-global de deux séquences ;
+- alignement global avec l’algorithme de Needleman-Wunsch et local avec Smith-Waterman ;
+- sélection de la méthode d’alignement dans l’interface ;
 - affichage texte de l'alignement ;
-- test automatisé et build de production.
+- tests automatisés et build de production.
 
 En préparation :
 
-- alignements semi-global et local ;
 - alignement exact de trois séquences ;
 - dotplots 2D ;
 - visualisation 3D du cube de programmation dynamique ;
