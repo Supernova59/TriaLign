@@ -1,0 +1,18 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+}
+
+body { margin: 0; }
+main { max-width: 960px; margin: 0 auto; padding: 3rem 1.5rem; }
+section {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.25rem 1rem rgb(23 32 51 / 8%);
+}
+label { display: grid; gap: 0.5rem; font-weight: 600; }
+textarea { font: 1rem ui-monospace, monospace; padding: 0.75rem; }
