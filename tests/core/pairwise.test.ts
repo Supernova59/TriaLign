@@ -4,6 +4,7 @@ import {
   localAlignment,
   semiGlobalAlignment,
 } from '../../src/core/alignment/pairwise';
+import { tripleAlignment } from '../../src/core/alignment/triple';
 import { normalizeSequenceInput } from '../../src/data/fasta';
 
 describe('globalAlignment', () => {
@@ -34,6 +35,15 @@ describe('semiGlobalAlignment', () => {
     expect(result.first.replaceAll('-', '')).toBe('TTACGT');
     expect(result.second.replaceAll('-', '')).toBe('ACGTAA');
     expect(result.score).toBe(4);
+  });
+});
+
+describe('tripleAlignment', () => {
+  it('aligne trois séquences identiques', () => {
+    const result = tripleAlignment('AC', 'AC', 'AC');
+
+    expect(result.sequences).toEqual(['AC', 'AC', 'AC']);
+    expect(result.score).toBe(6);
   });
 });
 

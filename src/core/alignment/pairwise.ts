@@ -6,13 +6,16 @@ export function globalAlignment(
   second: string,
   scoring: Scoring = defaultScoring,
 ): PairwiseAlignment {
+  // La matrice contient le meilleur score possible pour chaque préfixe.
   const scores = Array.from({ length: first.length + 1 }, () =>
     Array<number>(second.length + 1).fill(0),
   );
 
+  // Au début, il faut forcément placer des gaps pour aligner une séquence vide.
   for (let i = 1; i <= first.length; i += 1) scores[i][0] = i * scoring.gap;
   for (let j = 1; j <= second.length; j += 1) scores[0][j] = j * scoring.gap;
 
+  // Chaque case peut venir d'une diagonale, du haut ou de la gauche.
   for (let i = 1; i <= first.length; i += 1) {
     for (let j = 1; j <= second.length; j += 1) {
       scores[i][j] = Math.max(
@@ -28,6 +31,7 @@ export function globalAlignment(
   let i = first.length;
   let j = second.length;
 
+  // On remonte la matrice pour retrouver le chemin qui donne le score optimal.
   while (i > 0 || j > 0) {
     if (
       i > 0 &&
@@ -57,6 +61,8 @@ export function localAlignment(
   second: string,
   scoring: Scoring = defaultScoring,
 ): PairwiseAlignment {
+  // Ici, les scores négatifs sont remplacés par zéro : un nouvel alignement
+  // local peut donc recommencer à n'importe quelle position.
   const scores = Array.from({ length: first.length + 1 }, () =>
     Array<number>(second.length + 1).fill(0),
   );
@@ -73,6 +79,7 @@ export function localAlignment(
         scores[i][j - 1] + scoring.gap,
       );
 
+      // On garde la position de la meilleure cellule pour commencer le traceback.
       if (scores[i][j] > bestScore) {
         bestScore = scores[i][j];
         bestI = i;
@@ -86,6 +93,7 @@ export function localAlignment(
   let i = bestI;
   let j = bestJ;
 
+  // Le traceback s'arrête dès que l'alignement local retombe à zéro.
   while (i > 0 && j > 0 && scores[i][j] > 0) {
     if (
       scores[i][j] ===
@@ -114,6 +122,7 @@ export function semiGlobalAlignment(
   second: string,
   scoring: Scoring = defaultScoring,
 ): PairwiseAlignment {
+  // Les bords restent à zéro pour ne pas pénaliser les débuts de séquence.
   const scores = Array.from({ length: first.length + 1 }, () =>
     Array<number>(second.length + 1).fill(0),
   );
@@ -128,6 +137,8 @@ export function semiGlobalAlignment(
     }
   }
 
+  // En semi-global, le meilleur alignement peut se terminer sur le dernier
+  // caractère de l'une ou l'autre séquence.
   let endI = first.length;
   let endJ = second.length;
   let bestScore = scores[endI][endJ];
@@ -182,6 +193,7 @@ export function semiGlobalAlignment(
     }
   }
 
+  // Les morceaux qui restent aux extrémités sont ajoutés sans changer le score.
   const prefixFirst = i > 0 ? first.slice(0, i) : '-'.repeat(j);
   const prefixSecond = j > 0 ? second.slice(0, j) : '-'.repeat(i);
 

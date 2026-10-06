@@ -16,13 +16,13 @@ Fonctionnel :
 - import et parsing basique de séquences FASTA ;
 - alignements global, local et semi-global de deux séquences ;
 - alignement global avec l’algorithme de Needleman-Wunsch et local avec Smith-Waterman ;
+- alignement global exact de trois séquences ;
 - sélection de la méthode d’alignement dans l’interface ;
 - affichage texte de l'alignement ;
 - tests automatisés et build de production.
 
 En préparation :
 
-- alignement exact de trois séquences ;
 - dotplots 2D ;
 - visualisation 3D du cube de programmation dynamique ;
 - dotpath et nuage de k-mers ;
@@ -35,9 +35,9 @@ En préparation :
 
 | Méthode | Deux séquences | Trois séquences |
 | --- | :---: | :---: |
-| Global (Needleman-Wunsch) | En cours | Prévu |
-| Semi-global | Prévu | Prévu |
-| Local (Smith-Waterman) | Prévu | Prévu |
+| Global (Needleman-Wunsch) | Fonctionnel | Fonctionnel |
+| Semi-global | Fonctionnel | Prévu |
+| Local (Smith-Waterman) | Fonctionnel | Prévu |
 
 ### Visualisations
 
