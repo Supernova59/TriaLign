@@ -56,13 +56,22 @@ describe('tripleAlignment', () => {
     expect(result.sequences.every((sequence) => sequence.length === result.sequences[0].length)).toBe(
       true,
     );
-    expect(result.sequences.some((sequence) => sequence.includes('-'))).toBe(true);
     expect(result.sequences.map((sequence) => sequence.replaceAll('-', ''))).toEqual([
       'ATGGCCATTGTAATGGGCCG',
       'ATGGCCATTATAATGGTCCG',
       'ATGGCCGTTGTAATGGGCAG',
     ]);
-    expect(result.score).toBeGreaterThan(44);
+    const pair = (a: string, b: string): number =>
+      a === '-' && b === '-' ? 0 : a === '-' || b === '-' ? -1 : a === b ? 1 : -1;
+    let score = 0;
+    for (let index = 0; index < result.sequences[0].length; index += 1) {
+      score +=
+        pair(result.sequences[0][index], result.sequences[1][index]) +
+        pair(result.sequences[0][index], result.sequences[2][index]) +
+        pair(result.sequences[1][index], result.sequences[2][index]);
+    }
+    expect(score).toBe(result.score);
+    expect(result.score).toBeGreaterThanOrEqual(44);
   });
 
   it('conserve le même score quelle que soit la permutation des séquences', () => {
@@ -89,7 +98,8 @@ describe('tripleAlignment', () => {
         (score, character, index) =>
           score +
           characters.slice(index + 1).reduce((pairScore, other) => {
-            if (character === '-' || other === '-') return pairScore;
+            if (character === '-' && other === '-') return pairScore;
+            if (character === '-' || other === '-') return pairScore - 1;
             return pairScore + (character === other ? 1 : -1);
           }, 0),
         0,
