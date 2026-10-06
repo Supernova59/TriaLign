@@ -8,7 +8,7 @@ export interface TripleAlignment {
  
 function pairScore(first: string, second: string, scoring: Scoring): number {
   if (first === '-' && second === '-') return 0;
-  if (first === '-' || second === '-') return scoring.gap;
+  if (first === '-' || second === '-') return 0;
   return scorePair(first, second, scoring);
 }
  
@@ -163,11 +163,16 @@ export function tripleAlignment(
       alignedSecond = second[j - 1] + alignedSecond;
       alignedThird = '-' + alignedThird;
       j -= 1;
-    } else {
+    } else if (
+      k > 0 &&
+      scores[i][j][k] === scores[i][j][k - 1] + moveScore('-', '-', third[k - 1])
+    ) {
       alignedFirst = '-' + alignedFirst;
       alignedSecond = '-' + alignedSecond;
       alignedThird = third[k - 1] + alignedThird;
       k -= 1;
+    } else {
+      throw new Error('Unable to reconstruct the optimal triple alignment');
     }
   }
  
