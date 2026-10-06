@@ -16,7 +16,8 @@ Fonctionnel :
 - import et parsing basique de séquences FASTA ;
 - alignements global, local et semi-global de deux séquences ;
 - alignement global avec l’algorithme de Needleman-Wunsch et local avec Smith-Waterman ;
-- alignement global exact de trois séquences ;
+- alignement global exact de trois séquences, avec gaps optimisés pour préserver
+  les blocs homologues et calcul d'un score d'identité ;
 - sélection de la méthode d’alignement dans l’interface ;
 - affichage texte de l'alignement ;
 - tests automatisés et build de production.

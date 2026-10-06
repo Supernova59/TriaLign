@@ -6,17 +6,22 @@ export interface TripleAlignment {
   score: number;
 }
 
+function pairScore(first: string, second: string, scoring: Scoring): number {
+  if (first === '-' && second === '-') return 0;
+  if (first === '-' || second === '-') return scoring.gap;
+  return scorePair(first, second, scoring);
+}
+
 function scoreColumn(first: string, second: string, third: string, scoring: Scoring): number {
-  // Le score d'une colonne est la somme des scores de chaque paire réelle.
-  // Une paire de deux gaps ne compte pas.
-  let score = 0;
-  if (first !== '-' && second !== '-') score += scorePair(first, second, scoring);
-  if (first !== '-' && third !== '-') score += scorePair(first, third, scoring);
-  if (second !== '-' && third !== '-') score += scorePair(second, third, scoring);
-  if (first === '-' && second !== '-') score += scoring.gap;
-  if (first === '-' && third !== '-') score += scoring.gap;
-  if (second === '-' && third !== '-') score += scoring.gap;
-  return score;
+  return (
+    pairScore(first, second, scoring) +
+    pairScore(first, third, scoring) +
+    pairScore(second, third, scoring)
+  );
+}
+
+function gapCount(first: string, second: string, third: string): number {
+  return first === '-' || second === '-' || third === '-' ? 1 : 0;
 }
 
 export function tripleAlignment(
@@ -25,6 +30,13 @@ export function tripleAlignment(
   third: string,
   scoring: Scoring = defaultScoring,
 ): TripleAlignment {
+  // Pour un alignement multiple, les gaps servent à comparer les bases
+  // homologues. Ils ne doivent donc pas réduire le score d'identité.
+  const identityScoring: Scoring = { ...scoring, gap: 0 };
+  const scoreScale = first.length + second.length + third.length + 1;
+  const moveScore = (a: string, b: string, c: string) =>
+    scoreColumn(a, b, c, identityScoring) * scoreScale - gapCount(a, b, c);
+
   // Avec trois séquences, on a une matrice 3D au lieu d'une matrice 2D.
   const scores = Array.from({ length: first.length + 1 }, () =>
     Array.from({ length: second.length + 1 }, () =>
@@ -44,32 +56,41 @@ export function tripleAlignment(
         if (i > 0 && j > 0 && k > 0) {
           candidates.push(
             scores[i - 1][j - 1][k - 1] +
-              scoreColumn(first[i - 1], second[j - 1], third[k - 1], scoring),
+            moveScore(first[i - 1], second[j - 1], third[k - 1]),
           );
         }
         if (i > 0 && j > 0) {
           candidates.push(
-            scores[i - 1][j - 1][k] + scoreColumn(first[i - 1], second[j - 1], '-', scoring),
+            scores[i - 1][j - 1][k] +
+              moveScore(first[i - 1], second[j - 1], '-'),
           );
         }
         if (i > 0 && k > 0) {
           candidates.push(
-            scores[i - 1][j][k - 1] + scoreColumn(first[i - 1], '-', third[k - 1], scoring),
+            scores[i - 1][j][k - 1] +
+              moveScore(first[i - 1], '-', third[k - 1]),
           );
         }
         if (j > 0 && k > 0) {
           candidates.push(
-            scores[i][j - 1][k - 1] + scoreColumn('-', second[j - 1], third[k - 1], scoring),
+            scores[i][j - 1][k - 1] +
+              moveScore('-', second[j - 1], third[k - 1]),
           );
         }
         if (i > 0) {
-          candidates.push(scores[i - 1][j][k] + scoreColumn(first[i - 1], '-', '-', scoring));
+          candidates.push(
+            scores[i - 1][j][k] + moveScore(first[i - 1], '-', '-'),
+          );
         }
         if (j > 0) {
-          candidates.push(scores[i][j - 1][k] + scoreColumn('-', second[j - 1], '-', scoring));
+          candidates.push(
+            scores[i][j - 1][k] + moveScore('-', second[j - 1], '-'),
+          );
         }
         if (k > 0) {
-          candidates.push(scores[i][j][k - 1] + scoreColumn('-', '-', third[k - 1], scoring));
+          candidates.push(
+            scores[i][j][k - 1] + moveScore('-', '-', third[k - 1]),
+          );
         }
         scores[i][j][k] = Math.max(...candidates);
       }
@@ -91,7 +112,7 @@ export function tripleAlignment(
       k > 0 &&
       scores[i][j][k] ===
         scores[i - 1][j - 1][k - 1] +
-          scoreColumn(first[i - 1], second[j - 1], third[k - 1], scoring)
+        moveScore(first[i - 1], second[j - 1], third[k - 1])
     ) {
       alignedFirst = first[i - 1] + alignedFirst;
       alignedSecond = second[j - 1] + alignedSecond;
@@ -103,7 +124,8 @@ export function tripleAlignment(
       i > 0 &&
       j > 0 &&
       scores[i][j][k] ===
-        scores[i - 1][j - 1][k] + scoreColumn(first[i - 1], second[j - 1], '-', scoring)
+        scores[i - 1][j - 1][k] +
+          moveScore(first[i - 1], second[j - 1], '-')
     ) {
       alignedFirst = first[i - 1] + alignedFirst;
       alignedSecond = second[j - 1] + alignedSecond;
@@ -114,7 +136,8 @@ export function tripleAlignment(
       i > 0 &&
       k > 0 &&
       scores[i][j][k] ===
-        scores[i - 1][j][k - 1] + scoreColumn(first[i - 1], '-', third[k - 1], scoring)
+        scores[i - 1][j][k - 1] +
+          moveScore(first[i - 1], '-', third[k - 1])
     ) {
       alignedFirst = first[i - 1] + alignedFirst;
       alignedSecond = '-' + alignedSecond;
@@ -125,7 +148,8 @@ export function tripleAlignment(
       j > 0 &&
       k > 0 &&
       scores[i][j][k] ===
-        scores[i][j - 1][k - 1] + scoreColumn('-', second[j - 1], third[k - 1], scoring)
+        scores[i][j - 1][k - 1] +
+          moveScore('-', second[j - 1], third[k - 1])
     ) {
       alignedFirst = '-' + alignedFirst;
       alignedSecond = second[j - 1] + alignedSecond;
@@ -134,7 +158,7 @@ export function tripleAlignment(
       k -= 1;
     } else if (
       i > 0 &&
-      scores[i][j][k] === scores[i - 1][j][k] + scoreColumn(first[i - 1], '-', '-', scoring)
+      scores[i][j][k] === scores[i - 1][j][k] + moveScore(first[i - 1], '-', '-')
     ) {
       alignedFirst = first[i - 1] + alignedFirst;
       alignedSecond = '-' + alignedSecond;
@@ -142,7 +166,7 @@ export function tripleAlignment(
       i -= 1;
     } else if (
       j > 0 &&
-      scores[i][j][k] === scores[i][j - 1][k] + scoreColumn('-', second[j - 1], '-', scoring)
+      scores[i][j][k] === scores[i][j - 1][k] + moveScore('-', second[j - 1], '-')
     ) {
       alignedFirst = '-' + alignedFirst;
       alignedSecond = second[j - 1] + alignedSecond;
@@ -158,6 +182,6 @@ export function tripleAlignment(
 
   return {
     sequences: [alignedFirst, alignedSecond, alignedThird],
-    score: scores[first.length][second.length][third.length],
+    score: Math.round(scores[first.length][second.length][third.length] / scoreScale),
   };
 }
