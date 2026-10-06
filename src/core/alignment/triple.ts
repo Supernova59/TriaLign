@@ -8,7 +8,7 @@ export interface TripleAlignment {
  
 function pairScore(first: string, second: string, scoring: Scoring): number {
   if (first === '-' && second === '-') return 0;
-  if (first === '-' || second === '-') return 0;
+  if (first === '-' || second === '-') return scoring.gap;
   return scorePair(first, second, scoring);
 }
  
