@@ -24,7 +24,7 @@ Fonctionnel :
 
 En préparation :
 
-- dotplots 2D ;
+- dotplot 2D (prochaine priorité) ;
 - visualisation 3D du cube de programmation dynamique ;
 - dotpath et nuage de k-mers ;
 - récupération de séquences depuis NCBI et UniProt ;
