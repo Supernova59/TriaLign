@@ -78,7 +78,7 @@ export function App() {
   return (
     <main>
       <header>
-        <p>Tripath</p>
+        <p>TriaLign</p>
         <h1>Comparer des séquences biologiques</h1>
         <p>Un espace pédagogique pour comprendre les alignements 2D et 3D.</p>
       </header>
