@@ -1,8 +1,8 @@
-# Tripath
+# TriaLign
 
 > Comparer des séquences biologiques à deux ou à trois, et voir où elles se ressemblent.
 
-Tripath est une application web pédagogique d'alignement de séquences biologiques. Elle vise à comparer des séquences d'ADN, d'ARN ou de protéines et à rendre les algorithmes d'alignement compréhensibles grâce à des visualisations interactives.
+TriaLign est une application web pédagogique d'alignement de séquences biologiques. Elle vise à comparer des séquences d'ADN, d'ARN ou de protéines et à rendre les algorithmes d'alignement compréhensibles grâce à des visualisations interactives.
 
 Le projet fonctionne entièrement dans le navigateur. Il est destiné à l'exploration et à l'apprentissage, et non au remplacement d'outils spécialisés comme MAFFT ou Clustal pour de grandes séquences.
 
@@ -126,7 +126,7 @@ La CI exécute automatiquement les tests et le build lors des pushes et des pull
 
 ## Déploiement
 
-Tripath produit un site statique. Le dossier `dist/` peut être déployé sur Cloudflare Pages, Netlify ou GitHub Pages.
+TriaLign produit un site statique. Le dossier `dist/` peut être déployé sur Cloudflare Pages, Netlify ou GitHub Pages.
 
 Configuration habituelle pour Cloudflare Pages ou Netlify :
 
