@@ -6,9 +6,10 @@ import { SequenceInput } from './components/SequenceInput';
 import { AlignmentCancelledError, startAlignment, type AlignmentJob } from './workers/alignmentClient';
 import type { AlignmentMethod, AlignmentResult } from './workers/messages';
 import { DotplotTool } from './tools/dotplot/DotplotTool';
+import { DotpathTool } from './tools/dotpath/DotpathTool';
 
 type Status = 'idle' | 'running' | 'done' | 'error';
-type Method = AlignmentMethod | 'dotplot';
+type Method = AlignmentMethod | 'dotplot' | 'dotpath';
 
 export function App() {
   const [firstInput, setFirstInput] = useState('ACGT');
@@ -27,6 +28,7 @@ export function App() {
 
   const isTriple = method === 'triple';
   const isDotplot = method === 'dotplot';
+  const isDotpath = method === 'dotpath';
   const ready = Boolean(firstSequence && secondSequence && (!isTriple || thirdSequence));
   const size = isTriple
     ? checkTripleSize(firstSequence.length, secondSequence.length, thirdSequence.length)
@@ -46,7 +48,7 @@ export function App() {
   useEffect(() => () => jobRef.current?.cancel(), []);
 
   function compute() {
-    if (method === 'dotplot' || !ready || !size.ok) return;
+    if (method === 'dotplot' || method === 'dotpath' || !ready || !size.ok) return;
     setStatus('running');
     setProgress(0);
     setResult(undefined);
@@ -94,16 +96,27 @@ export function App() {
             <option value="semi-global">Semi-global</option>
             <option value="triple">Global à trois séquences</option>
             <option value="dotplot">Dotplot (k-mers communs)</option>
+            <option value="dotpath">Dotpath (carte de similarité)</option>
           </select>
         </label>
         <div className="sequence-inputs">
           <SequenceInput label="Séquence 1" value={firstInput} onChange={setFirstInput} />
           <SequenceInput label="Séquence 2" value={secondInput} onChange={setSecondInput} />
-          {isTriple && <SequenceInput label="Séquence 3" value={thirdInput} onChange={setThirdInput} />}
+          {(isTriple || isDotpath) && (
+            <SequenceInput label={isDotpath ? 'Séquence 3 (facultative)' : 'Séquence 3'} value={thirdInput} onChange={setThirdInput} />
+          )}
         </div>
 
         {isDotplot ? (
           <DotplotTool first={firstSequence} second={secondSequence} />
+        ) : isDotpath ? (
+          <DotpathTool
+            items={[
+              { label: 'Séquence 1', sequence: firstSequence },
+              { label: 'Séquence 2', sequence: secondSequence },
+              { label: 'Séquence 3', sequence: thirdSequence },
+            ].filter((item) => item.sequence)}
+          />
         ) : (
           <>
         {ready && !size.ok && <p role="alert">{size.message}</p>}
