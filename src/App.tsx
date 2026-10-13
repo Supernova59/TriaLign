@@ -5,14 +5,16 @@ import { AlignmentText } from './viz/AlignmentText';
 import { SequenceInput } from './components/SequenceInput';
 import { AlignmentCancelledError, startAlignment, type AlignmentJob } from './workers/alignmentClient';
 import type { AlignmentMethod, AlignmentResult } from './workers/messages';
+import { DotplotTool } from './tools/dotplot/DotplotTool';
 
 type Status = 'idle' | 'running' | 'done' | 'error';
+type Method = AlignmentMethod | 'dotplot';
 
 export function App() {
   const [firstInput, setFirstInput] = useState('ACGT');
   const [secondInput, setSecondInput] = useState('AGT');
   const [thirdInput, setThirdInput] = useState('ACT');
-  const [method, setMethod] = useState<AlignmentMethod>('global');
+  const [method, setMethod] = useState<Method>('global');
   const [status, setStatus] = useState<Status>('idle');
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<AlignmentResult | undefined>();
@@ -24,6 +26,7 @@ export function App() {
   const thirdSequence = useMemo(() => normalizeSequenceInput(thirdInput), [thirdInput]);
 
   const isTriple = method === 'triple';
+  const isDotplot = method === 'dotplot';
   const ready = Boolean(firstSequence && secondSequence && (!isTriple || thirdSequence));
   const size = isTriple
     ? checkTripleSize(firstSequence.length, secondSequence.length, thirdSequence.length)
@@ -43,7 +46,7 @@ export function App() {
   useEffect(() => () => jobRef.current?.cancel(), []);
 
   function compute() {
-    if (!ready || !size.ok) return;
+    if (method === 'dotplot' || !ready || !size.ok) return;
     setStatus('running');
     setProgress(0);
     setResult(undefined);
@@ -85,11 +88,12 @@ export function App() {
       <section>
         <label>
           Méthode d’alignement
-          <select value={method} onChange={(event) => setMethod(event.target.value as AlignmentMethod)}>
+          <select value={method} onChange={(event) => setMethod(event.target.value as Method)}>
             <option value="global">Global (Needleman-Wunsch)</option>
             <option value="local">Local (Smith-Waterman)</option>
             <option value="semi-global">Semi-global</option>
             <option value="triple">Global à trois séquences</option>
+            <option value="dotplot">Dotplot (k-mers communs)</option>
           </select>
         </label>
         <div className="sequence-inputs">
@@ -98,6 +102,10 @@ export function App() {
           {isTriple && <SequenceInput label="Séquence 3" value={thirdInput} onChange={setThirdInput} />}
         </div>
 
+        {isDotplot ? (
+          <DotplotTool first={firstSequence} second={secondSequence} />
+        ) : (
+          <>
         {ready && !size.ok && <p role="alert">{size.message}</p>}
         {ready && size.ok && isTriple && (
           <p>Cube de calcul : {size.cells.toLocaleString('fr-FR')} cases (maximum {size.maxCells.toLocaleString('fr-FR')}).</p>
@@ -127,6 +135,8 @@ export function App() {
             <pre aria-label="Alignement de trois séquences">{result.alignment.sequences.join('\n')}</pre>
             <p>Score : {result.alignment.score}</p>
           </div>
+        )}
+          </>
         )}
       </section>
     </main>
