@@ -28,3 +28,12 @@ export function normalizeSequenceInput(input: string): string {
 
   return trimmed.replace(/\s+/g, '').toUpperCase();
 }
+
+/** Écrit une séquence au format FASTA, avec des lignes de 70 lettres. */
+export function formatFasta(sequence: Sequence, lineWidth = 70): string {
+  const lines: string[] = [`>${sequence.label}`];
+  for (let start = 0; start < sequence.value.length; start += lineWidth) {
+    lines.push(sequence.value.slice(start, start + lineWidth));
+  }
+  return lines.join('\n');
+}

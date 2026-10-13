@@ -1,3 +1,5 @@
+import { AccessionLoader } from './AccessionLoader';
+
 interface SequenceInputProps {
   label: string;
   value: string;
@@ -6,9 +8,12 @@ interface SequenceInputProps {
 
 export function SequenceInput({ label, value, onChange }: SequenceInputProps) {
   return (
-    <label>
-      {label}
-      <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={8} />
-    </label>
+    <div className="sequence-input">
+      <label>
+        {label}
+        <textarea value={value} onChange={(event) => onChange(event.target.value)} rows={8} />
+      </label>
+      <AccessionLoader label={label} onLoaded={onChange} />
+    </div>
   );
 }
