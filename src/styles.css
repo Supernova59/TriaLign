@@ -45,3 +45,9 @@ input[type='range'] { width: 100%; max-width: 320px; }
 }
 .dotplot-legend li { display: flex; align-items: center; gap: 0.5rem; }
 .dotplot-legend strong { display: inline-block; width: 22px; text-align: center; color: #1f3a5f; }
+
+.sequence-input { display: grid; gap: 0.5rem; align-content: start; }
+.accession-loader { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.accession-loader input[type='text'] { flex: 1 1 12rem; min-width: 0; padding: 0.4rem 0.5rem; font: 0.9rem ui-monospace, monospace; }
+.accession-message { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: #4a5568; }
+.accession-message[role='alert'] { color: #b42318; }
