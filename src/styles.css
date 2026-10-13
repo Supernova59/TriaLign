@@ -51,3 +51,16 @@ input[type='range'] { width: 100%; max-width: 320px; }
 .accession-loader input[type='text'] { flex: 1 1 12rem; min-width: 0; padding: 0.4rem 0.5rem; font: 0.9rem ui-monospace, monospace; }
 .accession-message { flex-basis: 100%; margin: 0; font-size: 0.85rem; color: #4a5568; }
 .accession-message[role='alert'] { color: #b42318; }
+
+.dotpath { display: grid; gap: 1rem; }
+.dotpath-controls { display: grid; gap: 0.75rem; }
+.dotpath-controls label { display: grid; gap: 0.25rem; }
+.dotpath-pairs { display: flex; flex-wrap: wrap; gap: 1rem; border: 1px solid #c5ccd8; border-radius: 0.5rem; }
+.dotpath-pairs label { display: flex; gap: 0.4rem; align-items: center; }
+.ribbons { width: 100%; max-width: 760px; height: auto; background: white; border-radius: 0.5rem; }
+.ribbon { transition: fill-opacity 0.1s; }
+.ribbon:hover { fill-opacity: 0.95; stroke-width: 1.6; }
+.dotpath-matrix { border-collapse: collapse; font-size: 0.9rem; }
+.dotpath-matrix caption { text-align: left; color: #4a5568; padding-bottom: 0.4rem; }
+.dotpath-matrix th, .dotpath-matrix td { border: 1px solid #c5ccd8; padding: 0.4rem 0.7rem; text-align: center; }
+.dotpath-matrix td small { display: block; color: #6b7686; font-size: 0.75rem; }
