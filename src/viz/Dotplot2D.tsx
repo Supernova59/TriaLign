@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { MARGIN, SIZE, canvasToCell, cellCenter, layout, niceStep } from './dotplotGeometry';
 
 interface Dotplot2DProps {
   /** Paires aplaties [i0, j0, i1, j1, ...] (positions à partir de 0). */
@@ -8,28 +9,7 @@ interface Dotplot2DProps {
   secondSequence: string;
 }
 
-const SIZE = 560; // taille logique du canvas
-const MARGIN = { left: 52, top: 12, right: 12, bottom: 40 };
 const COLORS = { dot: '#1f3a5f', grid: '#e3e8ef', axis: '#6b7686', frame: '#c5ccd8' };
-
-function layout(firstLength: number, secondLength: number) {
-  const plotWidth = SIZE - MARGIN.left - MARGIN.right;
-  const plotHeight = SIZE - MARGIN.top - MARGIN.bottom;
-  return {
-    plotWidth,
-    plotHeight,
-    scaleX: plotWidth / Math.max(1, firstLength),
-    scaleY: plotHeight / Math.max(1, secondLength),
-  };
-}
-
-// Pas « rond » (1, 2, 5, 10, 20, 50...) pour avoir environ 5 graduations.
-function niceStep(length: number): number {
-  const raw = Math.max(1, length / 5);
-  const magnitude = 10 ** Math.floor(Math.log10(raw));
-  const ratio = raw / magnitude;
-  return (ratio < 1.5 ? 1 : ratio < 3.5 ? 2 : ratio < 7.5 ? 5 : 10) * magnitude;
-}
 
 export function Dotplot2D({ points, k, firstSequence, secondSequence }: Dotplot2DProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,41 +28,41 @@ export function Dotplot2D({ points, k, firstSequence, secondSequence }: Dotplot2
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.clearRect(0, 0, SIZE, SIZE);
 
-    const { plotWidth, plotHeight, scaleX, scaleY } = layout(n, m);
+    const l = layout(n, m);
     ctx.font = '11px system-ui, sans-serif';
     ctx.fillStyle = COLORS.axis;
     ctx.strokeStyle = COLORS.grid;
     ctx.lineWidth = 1;
 
-    // Graduations et grille : séquence 1 en horizontal, séquence 2 en vertical.
+    // Graduations et grille : séquence 1 en horizontal, séquence 2 en vertical (origine en bas à gauche).
     ctx.textAlign = 'center';
     for (let value = 0; value <= n; value += niceStep(n)) {
-      const x = MARGIN.left + value * scaleX;
+      const x = l.xAt(value);
       ctx.beginPath();
       ctx.moveTo(x, MARGIN.top);
-      ctx.lineTo(x, MARGIN.top + plotHeight);
+      ctx.lineTo(x, MARGIN.top + l.plotHeight);
       ctx.stroke();
-      ctx.fillText(String(value), x, MARGIN.top + plotHeight + 14);
+      ctx.fillText(String(value), x, MARGIN.top + l.plotHeight + 14);
     }
     ctx.textAlign = 'right';
     for (let value = 0; value <= m; value += niceStep(m)) {
-      const y = MARGIN.top + value * scaleY;
+      const y = l.yAt(value);
       ctx.beginPath();
       ctx.moveTo(MARGIN.left, y);
-      ctx.lineTo(MARGIN.left + plotWidth, y);
+      ctx.lineTo(MARGIN.left + l.plotWidth, y);
       ctx.stroke();
       ctx.fillText(String(value), MARGIN.left - 6, y + 4);
     }
     ctx.textAlign = 'center';
-    ctx.fillText('Séquence 1 →', MARGIN.left + plotWidth / 2, SIZE - 8);
+    ctx.fillText('Séquence 1 →', MARGIN.left + l.plotWidth / 2, SIZE - 8);
     ctx.save();
-    ctx.translate(12, MARGIN.top + plotHeight / 2);
-    ctx.rotate(-Math.PI / 2);
+    ctx.translate(12, MARGIN.top + l.plotHeight / 2);
+    ctx.rotate(-Math.PI / 2); // le texte se lit de bas en haut : la flèche pointe vers le haut
     ctx.fillText('Séquence 2 →', 0, 0);
     ctx.restore();
 
     ctx.strokeStyle = COLORS.frame;
-    ctx.strokeRect(MARGIN.left, MARGIN.top, plotWidth, plotHeight);
+    ctx.strokeRect(MARGIN.left, MARGIN.top, l.plotWidth, l.plotHeight);
 
     // Points : un k-mer commun est tracé comme un petit segment diagonal.
     const count = points.length / 2;
@@ -94,27 +74,29 @@ export function Dotplot2D({ points, k, firstSequence, secondSequence }: Dotplot2
       for (let p = 0; p < count; p += 1) {
         const i = points[p * 2];
         const j = points[p * 2 + 1];
-        ctx.moveTo(MARGIN.left + (i + 0.5) * scaleX, MARGIN.top + (j + 0.5) * scaleY);
-        ctx.lineTo(MARGIN.left + (i + k - 0.5) * scaleX, MARGIN.top + (j + k - 0.5) * scaleY);
+        const start = cellCenter(l, i, j);
+        const end = cellCenter(l, i + k - 1, j + k - 1);
+        ctx.moveTo(start.x, start.y);
+        ctx.lineTo(end.x, end.y);
       }
       ctx.stroke();
     } else {
       // Trop de points pour des segments : on dessine de simples pixels.
       ctx.fillStyle = COLORS.dot;
       for (let p = 0; p < count; p += 1) {
-        ctx.fillRect(MARGIN.left + points[p * 2] * scaleX, MARGIN.top + points[p * 2 + 1] * scaleY, Math.max(1, scaleX), Math.max(1, scaleY));
+        const i = points[p * 2];
+        const j = points[p * 2 + 1];
+        ctx.fillRect(l.xAt(i), l.yAt(j + 1), Math.max(1, l.scaleX), Math.max(1, l.scaleY));
       }
     }
   }, [points, k, n, m]);
 
   function onMouseMove(event: React.MouseEvent<HTMLCanvasElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
-    const { scaleX, scaleY, plotWidth, plotHeight } = layout(n, m);
     // On repasse des pixels de l'écran aux coordonnées logiques du canvas.
-    const x = ((event.clientX - rect.left) / rect.width) * SIZE - MARGIN.left;
-    const y = ((event.clientY - rect.top) / rect.height) * SIZE - MARGIN.top;
-    if (x < 0 || y < 0 || x >= plotWidth || y >= plotHeight) return setHover(null);
-    setHover({ i: Math.floor(x / scaleX), j: Math.floor(y / scaleY) });
+    const px = ((event.clientX - rect.left) / rect.width) * SIZE;
+    const py = ((event.clientY - rect.top) / rect.height) * SIZE;
+    setHover(canvasToCell(layout(n, m), px, py, n, m));
   }
 
   return (
@@ -132,6 +114,19 @@ export function Dotplot2D({ points, k, firstSequence, secondSequence }: Dotplot2
           ? `Séquence 1 : position ${hover.i + 1} (${firstSequence[hover.i]}) · Séquence 2 : position ${hover.j + 1} (${secondSequence[hover.j]})`
           : 'Survole le graphique pour lire les positions.'}
       </p>
+
+      <ul className="dotplot-legend" aria-label="Légende du dotplot">
+        <li>
+          <svg width="22" height="16" aria-hidden="true">
+            <line x1="3" y1="13" x2="19" y2="3" stroke={COLORS.dot} strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          Un trait = un k-mer commun aux deux séquences ({k} lettre{k > 1 ? 's' : ''} identiques à la suite)
+        </li>
+        <li><strong>↗</strong> Une diagonale = une région similaire, dans le même sens</li>
+        <li><strong>║</strong> Plusieurs diagonales parallèles = un motif qui se répète</li>
+        <li><strong>·</strong> Des points isolés = coïncidences dues au hasard (augmente k pour les faire disparaître)</li>
+        <li>Axes : positions en lettres, l'origine est en bas à gauche</li>
+      </ul>
     </div>
   );
 }
